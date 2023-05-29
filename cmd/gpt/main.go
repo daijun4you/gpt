@@ -1,30 +1,30 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	openai "github.com/sashabaranov/go-openai"
+	"bufio"
+	"github.com/daijun4you/gpt/configs"
+	"github.com/daijun4you/gpt/internal"
+	"os"
 )
 
 func main() {
-	client := openai.NewClient("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")
-	resp, err := client.CreateChatCompletion(
-		context.Background(),
-		openai.ChatCompletionRequest{
-			Model: openai.GPT3Dot5Turbo,
-			Messages: []openai.ChatCompletionMessage{
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: "Hello!",
-				},
-			},
-		},
-	)
-
+	role, err := configs.Instance.Get("lose-weight", "roles.ini")
 	if err != nil {
-		fmt.Printf("ChatCompletion error: %v\n", err)
+		println(err.Error())
 		return
 	}
 
-	fmt.Println(resp.Choices[0].Message.Content)
+	gpt := new(internal.GPT)
+	gpt.Init(role)
+
+	println("请您提问：\n")
+
+	s := bufio.NewScanner(os.Stdin)
+	for s.Scan() {
+		if s.Text() == "" {
+			continue
+		}
+
+		gpt.Talk(s.Text())
+	}
 }
